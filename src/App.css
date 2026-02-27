@@ -1,0 +1,104 @@
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.app-header {
+  margin-bottom: 30px;
+}
+
+.app-header h1 {
+  margin: 0 0 20px;
+  font-size: 28px;
+  color: #333;
+}
+
+.tab-nav {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 0;
+}
+
+.tab-btn {
+  padding: 12px 24px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  color: #666;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: #333;
+  background: #f5f5f5;
+}
+
+.tab-btn.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+}
+
+.app-main {
+  min-height: 500px;
+}
+
+.editor-section h2 {
+  margin: 0 0 24px;
+  font-size: 22px;
+  color: #333;
+}
+
+.editor-container {
+  margin-bottom: 40px;
+}
+
+.editor-container h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: #444;
+}
+
+.editor-description {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: #666;
+}
+
+.html-output {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.html-output summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: #666;
+}
+
+.html-output pre {
+  margin: 12px 0 0;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.coming-soon {
+  padding: 60px;
+  text-align: center;
+  color: #999;
+  font-size: 18px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
