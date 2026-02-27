@@ -1,92 +1,85 @@
-import { useState, useLayoutEffect, type ReactNode } from 'react';
-import {
-  useFloating,
-  autoUpdate,
-  offset,
-  flip,
-  shift,
-  useClick,
-  useDismiss,
-  useRole,
-  useInteractions,
-  FloatingPortal,
-  FloatingFocusManager,
-} from '@floating-ui/react';
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/react';
 
 interface DropdownProps {
   trigger: ReactNode;
   children: ReactNode;
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
   className?: string;
+  /** Controlled open state */
+  isOpen?: boolean;
+  /** Callback when open state changes */
+  onOpenChange?: (isOpen: boolean) => void;
+  /** If true, don't close the dropdown when clicking inside children */
+  closeOnContentClick?: boolean;
 }
 
-export function Dropdown({ trigger, children, isOpen, onOpenChange, className = '' }: DropdownProps) {
-  const [isPositioned, setIsPositioned] = useState(false);
+export function Dropdown({ 
+  trigger, 
+  children, 
+  className = '',
+  isOpen: controlledIsOpen,
+  onOpenChange,
+  closeOnContentClick = true,
+}: DropdownProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [dropdownElement, setDropdownElement] = useState<HTMLDivElement | null>(null);
   
-  const { refs, floatingStyles, context } = useFloating({
+  // Use controlled or internal state
+  const isControlled = controlledIsOpen !== undefined;
+  const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
+  const setIsOpen = useCallback((value: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(value);
+    }
+    if (!isControlled) {
+      setInternalIsOpen(value);
+    }
+  }, [isControlled, onOpenChange]);
+
+  const { refs, floatingStyles } = useFloating({
     open: isOpen,
-    onOpenChange: (open) => {
-      onOpenChange(open);
-      if (!open) {
-        setIsPositioned(false);
-      }
-    },
-    middleware: [
-      offset(4),
-      flip({ fallbackAxisSideDirection: 'end' }),
-      shift({ padding: 8 }),
-    ],
-    whileElementsMounted: autoUpdate,
+    onOpenChange: setIsOpen,
     placement: 'bottom-start',
+    middleware: [offset(4), flip(), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
   });
 
-  // Wait for position to be calculated before showing
-  useLayoutEffect(() => {
-    if (isOpen && floatingStyles.position) {
-      // Use requestAnimationFrame to ensure the position is applied
-      requestAnimationFrame(() => {
-        setIsPositioned(true);
-      });
-    } else if (!isOpen) {
-      setIsPositioned(false);
+  const setReferenceRef = useCallback((node: HTMLDivElement | null) => {
+    refs.setReference(node);
+  }, [refs]);
+
+  const setFloatingRef = useCallback((node: HTMLDivElement | null) => {
+    refs.setFloating(node);
+  }, [refs]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownElement && !dropdownElement.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
     }
-  }, [isOpen, floatingStyles.position]);
 
-  const click = useClick(context);
-  const dismiss = useDismiss(context);
-  const role = useRole(context, { role: 'menu' });
-
-  const { getReferenceProps, getFloatingProps } = useInteractions([
-    click,
-    dismiss,
-    role,
-  ]);
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isOpen, dropdownElement, setIsOpen]);
 
   return (
-    <>
-      <div ref={refs.setReference} {...getReferenceProps()}>
+    <div ref={setDropdownElement} className={`dropdown ${className}`}>
+      <div ref={setReferenceRef} onClick={() => setIsOpen(!isOpen)}>
         {trigger}
       </div>
       {isOpen && (
-        <FloatingPortal>
-          <FloatingFocusManager context={context} modal={false}>
-            <div
-              // eslint-disable-next-line react-hooks/refs
-              ref={refs.setFloating}
-              style={{
-                ...floatingStyles,
-                opacity: isPositioned ? 1 : 0,
-                transition: 'opacity 0.1s ease',
-              }}
-              {...getFloatingProps()}
-              className={`pm-dropdown ${className}`}
-            >
-              {children}
-            </div>
-          </FloatingFocusManager>
-        </FloatingPortal>
+        <div
+          ref={setFloatingRef}
+          style={floatingStyles}
+          className="dropdown-menu"
+          onClick={closeOnContentClick ? () => setIsOpen(false) : undefined}
+        >
+          {children}
+        </div>
       )}
-    </>
+    </div>
   );
 }

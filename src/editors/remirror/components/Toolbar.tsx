@@ -100,9 +100,24 @@ export function Toolbar({ variant }: ToolbarProps) {
     return null;
   }, [getState]);
 
+  // Get current text alignment
+  const getCurrentAlign = useCallback(() => {
+    try {
+      const { $from } = getState().selection;
+      const node = $from.parent;
+      if (node.attrs?.nodeTextAlignment) {
+        return node.attrs.nodeTextAlignment;
+      }
+    } catch {
+      // Ignore errors
+    }
+    return null;
+  }, [getState]);
+
   const currentFontSize = getFontSize();
   const currentTextColor = getTextColor();
   const currentBgColor = getHighlightColor();
+  const currentAlign = getCurrentAlign();
 
   const handleAddLink = useCallback(() => {
     if (!linkUrl) return;
@@ -354,7 +369,7 @@ export function Toolbar({ variant }: ToolbarProps) {
           {/* Text Alignment */}
           <button
             type="button"
-            className="toolbar-btn"
+            className={`toolbar-btn ${!currentAlign || currentAlign === 'left' ? 'active' : ''}`}
             onClick={() => commands.leftAlign?.()}
             title="Align Left"
           >
@@ -362,7 +377,7 @@ export function Toolbar({ variant }: ToolbarProps) {
           </button>
           <button
             type="button"
-            className="toolbar-btn"
+            className={`toolbar-btn ${currentAlign === 'center' ? 'active' : ''}`}
             onClick={() => commands.centerAlign?.()}
             title="Align Center"
           >
@@ -370,7 +385,7 @@ export function Toolbar({ variant }: ToolbarProps) {
           </button>
           <button
             type="button"
-            className="toolbar-btn"
+            className={`toolbar-btn ${currentAlign === 'right' ? 'active' : ''}`}
             onClick={() => commands.rightAlign?.()}
             title="Align Right"
           >
@@ -378,7 +393,7 @@ export function Toolbar({ variant }: ToolbarProps) {
           </button>
           <button
             type="button"
-            className="toolbar-btn"
+            className={`toolbar-btn ${currentAlign === 'justify' ? 'active' : ''}`}
             onClick={() => commands.justifyAlign?.()}
             title="Justify"
           >

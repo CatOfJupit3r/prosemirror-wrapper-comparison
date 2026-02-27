@@ -266,3 +266,84 @@ export function getCurrentTextAlign(state: EditorState): string | null {
   }
   return null;
 }
+
+// Get current font size
+export function getCurrentFontSize(state: EditorState): string | null {
+  const { from, $from, to, empty } = state.selection;
+  const sizeMark = state.schema.marks.fontSize;
+  if (!sizeMark) return null;
+  
+  if (empty) {
+    const marks = state.storedMarks || $from.marks();
+    for (const mark of marks) {
+      if (mark.type === sizeMark) {
+        return mark.attrs.size;
+      }
+    }
+    return null;
+  }
+  
+  let size: string | null = null;
+  state.doc.nodesBetween(from, to, (node) => {
+    for (const mark of node.marks) {
+      if (mark.type === sizeMark) {
+        size = mark.attrs.size;
+      }
+    }
+  });
+  return size;
+}
+
+// Get current text color
+export function getCurrentTextColor(state: EditorState): string | null {
+  const { from, $from, to, empty } = state.selection;
+  const colorMark = state.schema.marks.textColor;
+  if (!colorMark) return null;
+  
+  if (empty) {
+    const marks = state.storedMarks || $from.marks();
+    for (const mark of marks) {
+      if (mark.type === colorMark) {
+        return mark.attrs.color;
+      }
+    }
+    return null;
+  }
+  
+  let color: string | null = null;
+  state.doc.nodesBetween(from, to, (node) => {
+    for (const mark of node.marks) {
+      if (mark.type === colorMark) {
+        color = mark.attrs.color;
+      }
+    }
+  });
+  return color;
+}
+
+// Get current background color
+export function getCurrentBgColor(state: EditorState): string | null {
+  const { from, $from, to, empty } = state.selection;
+  const bgMark = state.schema.marks.backgroundColor;
+  if (!bgMark) return null;
+  
+  if (empty) {
+    const marks = state.storedMarks || $from.marks();
+    for (const mark of marks) {
+      if (mark.type === bgMark) {
+        return mark.attrs.color;
+      }
+    }
+    return null;
+  }
+  
+  let color: string | null = null;
+  state.doc.nodesBetween(from, to, (node) => {
+    for (const mark of node.marks) {
+      if (mark.type === bgMark) {
+        color = mark.attrs.color;
+      }
+    }
+  });
+  return color;
+}
