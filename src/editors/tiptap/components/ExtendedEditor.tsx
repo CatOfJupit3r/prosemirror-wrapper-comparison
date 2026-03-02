@@ -17,12 +17,14 @@ import Blockquote from '@tiptap/extension-blockquote';
 import TextAlign from '@tiptap/extension-text-align';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
+import { FileHandler } from '@tiptap/extension-file-handler';
 import { FontSize } from '../extensions/FontSize';
 import { Tabulation } from '../extensions/Tabulation';
 import { Video } from '../extensions/Video';
 import { FileAttachment } from '../extensions/FileAttachment';
 import { Toolbar } from './Toolbar';
 import { ImagePreviewModal } from './ImagePreviewModal';
+import { uploadFile } from '../../../utils/upload';
 import './Editor.css';
 
 interface ExtendedEditorProps {
@@ -97,6 +99,66 @@ export function ExtendedEditor({ initialContent, onChange }: ExtendedEditorProps
       }),
       Video,
       FileAttachment,
+      FileHandler.configure({
+        allowedMimeTypes: [
+          'image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml',
+          'video/mp4', 'video/webm', 'video/quicktime',
+          'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'text/plain',
+        ],
+        onDrop: (currentEditor, files, pos) => {
+          for (const file of files) {
+            uploadFile(file)
+              .then((result) => {
+                if (file.type.startsWith('image/')) {
+                  currentEditor.chain().focus().insertContentAt(pos, {
+                    type: 'image',
+                    attrs: { src: result.url, alt: file.name },
+                  }).run();
+                } else if (file.type.startsWith('video/')) {
+                  currentEditor.chain().focus().insertContentAt(pos, {
+                    type: 'video',
+                    attrs: { src: result.url },
+                  }).run();
+                } else {
+                  currentEditor.chain().focus().insertContentAt(pos, {
+                    type: 'fileAttachment',
+                    attrs: { src: result.url, name: file.name },
+                  }).run();
+                }
+              })
+              .catch((error) => {
+                console.error('Upload failed:', error);
+              });
+          }
+        },
+        onPaste: (currentEditor, files) => {
+          for (const file of files) {
+            uploadFile(file)
+              .then((result) => {
+                if (file.type.startsWith('image/')) {
+                  currentEditor.chain().focus().insertContent({
+                    type: 'image',
+                    attrs: { src: result.url, alt: file.name },
+                  }).run();
+                } else if (file.type.startsWith('video/')) {
+                  currentEditor.chain().focus().insertContent({
+                    type: 'video',
+                    attrs: { src: result.url },
+                  }).run();
+                } else {
+                  currentEditor.chain().focus().insertContent({
+                    type: 'fileAttachment',
+                    attrs: { src: result.url, name: file.name },
+                  }).run();
+                }
+              })
+              .catch((error) => {
+                console.error('Upload failed:', error);
+              });
+          }
+        },
+      }),
     ],
     content: initialContent || '<p></p>',
     onUpdate: ({ editor }) => {

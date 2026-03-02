@@ -22,7 +22,9 @@ import {
   FaVideo,
   FaPaperclip,
   FaChevronDown,
+  FaSpinner,
 } from 'react-icons/fa';
+import { uploadFile } from '../../../utils/upload';
 import {
   toggleMarkCommand,
   isMarkActive,
@@ -77,6 +79,7 @@ export function Toolbar({ state, variant }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleToggleMark = useEditorEventCallback((view: EditorView, markName: string) => {
     const markType = view.state.schema.marks[markName];
@@ -163,38 +166,53 @@ export function Toolbar({ state, variant }: ToolbarProps) {
     view.focus();
   });
 
-  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        handleImageInsert(reader.result as string, file.name);
-      };
-      reader.readAsDataURL(file);
+      setIsUploading(true);
+      try {
+        const result = await uploadFile(file);
+        handleImageInsert(result.url, file.name);
+      } catch (error) {
+        console.error('Image upload failed:', error);
+        alert('Failed to upload image');
+      } finally {
+        setIsUploading(false);
+      }
     }
     e.target.value = '';
   }, [handleImageInsert]);
 
-  const handleVideoUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        handleVideoInsert(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      setIsUploading(true);
+      try {
+        const result = await uploadFile(file);
+        handleVideoInsert(result.url);
+      } catch (error) {
+        console.error('Video upload failed:', error);
+        alert('Failed to upload video');
+      } finally {
+        setIsUploading(false);
+      }
     }
     e.target.value = '';
   }, [handleVideoInsert]);
 
-  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        handleFileInsert(reader.result as string, file.name, file.type);
-      };
-      reader.readAsDataURL(file);
+      setIsUploading(true);
+      try {
+        const result = await uploadFile(file);
+        handleFileInsert(result.url, file.name, file.type);
+      } catch (error) {
+        console.error('File upload failed:', error);
+        alert('Failed to upload file');
+      } finally {
+        setIsUploading(false);
+      }
     }
     e.target.value = '';
   }, [handleFileInsert]);
@@ -485,14 +503,16 @@ export function Toolbar({ state, variant }: ToolbarProps) {
             accept="image/*"
             style={{ display: 'none' }}
             onChange={handleImageUpload}
+            disabled={isUploading}
           />
           <button
             type="button"
-            className="toolbar-btn"
+            className={`toolbar-btn ${isUploading ? 'uploading' : ''}`}
             onClick={() => imageInputRef.current?.click()}
             title="Insert Image"
+            disabled={isUploading}
           >
-            <FaImage />
+            {isUploading ? <FaSpinner className="spinner" /> : <FaImage />}
           </button>
 
           <input
@@ -501,14 +521,16 @@ export function Toolbar({ state, variant }: ToolbarProps) {
             accept="video/*"
             style={{ display: 'none' }}
             onChange={handleVideoUpload}
+            disabled={isUploading}
           />
           <button
             type="button"
-            className="toolbar-btn"
+            className={`toolbar-btn ${isUploading ? 'uploading' : ''}`}
             onClick={() => videoInputRef.current?.click()}
             title="Insert Video"
+            disabled={isUploading}
           >
-            <FaVideo />
+            {isUploading ? <FaSpinner className="spinner" /> : <FaVideo />}
           </button>
 
           <input
@@ -516,14 +538,16 @@ export function Toolbar({ state, variant }: ToolbarProps) {
             type="file"
             style={{ display: 'none' }}
             onChange={handleFileUpload}
+            disabled={isUploading}
           />
           <button
             type="button"
-            className="toolbar-btn"
+            className={`toolbar-btn ${isUploading ? 'uploading' : ''}`}
             onClick={() => fileInputRef.current?.click()}
             title="Attach File"
+            disabled={isUploading}
           >
-            <FaPaperclip />
+            {isUploading ? <FaSpinner className="spinner" /> : <FaPaperclip />}
           </button>
         </>
       )}

@@ -12,14 +12,17 @@ import {
   BlockquoteExtension,
   LinkExtension,
   ImageExtension,
+  DropCursorExtension,
 } from 'remirror/extensions';
 import { FontSizeExtension } from '@remirror/extension-font-size';
 import { TextColorExtension } from '@remirror/extension-text-color';
 import { TextHighlightExtension } from '@remirror/extension-text-highlight';
 import { VideoExtension } from '../extensions/VideoExtension';
 import { FileAttachmentExtension } from '../extensions/FileAttachmentExtension';
+import { FileDropHandlerExtension } from '../extensions/FileDropHandlerExtension';
 import { Toolbar } from './Toolbar';
 import { ImagePreviewModal } from './ImagePreviewModal';
+import { uploadFile } from '../../../utils/upload';
 import './Editor.css';
 
 interface ExtendedEditorProps {
@@ -59,11 +62,25 @@ export function ExtendedEditor({ initialContent, onChange }: ExtendedEditorProps
         autoLink: false,
         defaultTarget: '_blank',
       }),
+      new DropCursorExtension({}),
       new ImageExtension({
         enableResizing: false,
+        uploadHandler: (files) => {
+          return files.map((fileWithProgress) => {
+            return () =>
+              new Promise((resolve, reject) => {
+                uploadFile(fileWithProgress.file)
+                  .then((result) => {
+                    resolve({ src: result.url, alt: fileWithProgress.file.name });
+                  })
+                  .catch(reject);
+              });
+          });
+        },
       }),
       new VideoExtension({}),
       new FileAttachmentExtension({}),
+      new FileDropHandlerExtension({}),
     ],
     content: initialContent || '<p></p>',
     stringHandler: 'html',
