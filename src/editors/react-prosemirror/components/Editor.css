@@ -6,7 +6,8 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.prosemirror-editor {
+/* Target the actual ProseMirror contenteditable element */
+.prosemirror-editor-wrapper .ProseMirror {
   min-height: 200px;
   padding: 20px;
   outline: none;
@@ -17,12 +18,12 @@
   background: #fff;
 }
 
-.prosemirror-editor.extended {
+.prosemirror-editor-wrapper.extended .ProseMirror {
   min-height: 300px;
 }
 
 /* Placeholder */
-.prosemirror-editor p:first-child:empty::before,
+.prosemirror-editor-wrapper .ProseMirror p:first-child:empty::before,
 .prosemirror-editor:empty::before {
   content: attr(data-placeholder);
   color: #9ca3af;

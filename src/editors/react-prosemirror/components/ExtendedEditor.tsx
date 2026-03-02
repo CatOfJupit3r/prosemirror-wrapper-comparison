@@ -6,6 +6,7 @@ import { gapCursor } from 'prosemirror-gapcursor';
 import { DOMSerializer } from 'prosemirror-model';
 import { extendedSchema } from '../utils/schema';
 import { buildKeymap, buildBaseKeymap } from '../utils/keymap';
+import { createFileDropPlugin } from '../utils/fileDropPlugin';
 import { Toolbar } from './Toolbar';
 import { ImagePreviewModal } from './ImagePreviewModal';
 import './Editor.css';
@@ -55,6 +56,7 @@ export function ExtendedEditor({ initialContent, onChange }: ExtendedEditorProps
     history(),
     gapCursor(),
     reactKeys(),
+    createFileDropPlugin(extendedSchema),
   ], []);
 
   const initialState = useMemo(() => {
